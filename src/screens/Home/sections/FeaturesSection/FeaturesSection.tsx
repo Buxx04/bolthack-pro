@@ -50,32 +50,37 @@ export const FeaturesSection = (): JSX.Element => {
         {features.map((feature, index) => (
           <Card
             key={index}
-            className="flex flex-col h-full min-h-[400px] items-center gap-6 p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+            className="flex flex-col h-[480px] w-full max-w-sm mx-auto bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
           >
-            <CardContent className="flex flex-col items-center justify-between gap-6 p-0 h-full text-center">
-              {/* Icon */}
-              <div
-                className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg} flex-shrink-0`}
-              >
-                {feature.icon}
+            <CardContent className="flex flex-col items-center p-8 h-full text-center">
+              {/* Icon - Top 40px from start */}
+              <div className="mt-4 mb-6">
+                <div
+                  className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg}`}
+                >
+                  {feature.icon}
+                </div>
               </div>
 
-              {/* Step Number */}
-              <div
-                className={`font-['Inter'] font-bold ${feature.idColor} text-6xl md:text-7xl leading-none flex-shrink-0`}
-              >
-                {feature.id}
+              {/* Step Number - 140px from top */}
+              <div className="mb-8">
+                <div
+                  className={`font-['Inter'] font-bold ${feature.idColor} text-6xl md:text-7xl leading-none`}
+                >
+                  {feature.id}
+                </div>
               </div>
 
-              {/* Content Container */}
-              <div className="flex flex-col gap-4 flex-grow justify-center">
-                {/* Title */}
-                <h3 className="font-['Inter'] font-extrabold text-black text-xl leading-tight">
+              {/* Title - Fixed at same level for all cards */}
+              <div className="mb-6 h-20 flex items-center justify-center w-full">
+                <h3 className="font-['Inter'] font-extrabold text-black text-xl leading-tight text-center px-2">
                   {feature.title}
                 </h3>
+              </div>
 
-                {/* Description */}
-                <p className="font-['Inter'] font-normal text-gray-600 text-base leading-relaxed">
+              {/* Description - Remaining space */}
+              <div className="flex-1 flex items-start justify-center w-full">
+                <p className="font-['Inter'] font-normal text-gray-600 text-base leading-relaxed text-center px-2">
                   {feature.description}
                 </p>
               </div>

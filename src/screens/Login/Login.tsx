@@ -67,7 +67,7 @@ export const Login = (): JSX.Element => {
       <div className="absolute inset-0 bg-white/10 backdrop-blur-[0.5px]"></div>
       
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-6 md:px-[100px] w-full bg-white/80 backdrop-blur-sm border-b border-gray-100">
+      <header className="flex items-center justify-between px-6 py-6 md:px-[100px] w-full bg-white/10 backdrop-blur-md z-50">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-8 md:gap-12">
           {/* Logo */}
