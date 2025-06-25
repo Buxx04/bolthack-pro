@@ -1,24 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '../../supabase/supabaseClient'; // import client ที่เชื่อม Supabase
 
 interface User {
   id: string;
-  username: string;
   email: string;
-  avatar?: string;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
@@ -31,35 +31,67 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    // Simulate API call
-    if (username && password) {
-      const mockUser: User = {
-        id: '1',
-        username: 'smartsphere123',
-        email: 'smart.sphere@gmail.com',
-        avatar: '/user-avatar.png'
-      };
-      setUser(mockUser);
-      return true;
+  // 🔄 ตรวจสอบ session เมื่อ component โหลดครั้งแรก
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user;
+      if (sessionUser) {
+        setUser({
+          id: sessionUser.id,
+          email: sessionUser.email ?? '',
+          avatar_url: sessionUser.user_metadata?.avatar_url ?? '',
+        });
+      }
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email ?? '',
+          avatar_url: session.user.user_metadata?.avatar_url ?? '',
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      console.error('Login failed:', error?.message);
+      return false;
     }
-    return false;
+
+    setUser({
+      id: data.user.id,
+      email: data.user.email ?? '',
+      avatar_url: data.user.user_metadata?.avatar_url ?? '',
+    });
+
+    return true;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
-    logout
+    logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

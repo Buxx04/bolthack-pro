@@ -96,7 +96,7 @@ export const CallToActionSection = (): JSX.Element => {
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center hover:shadow-lg transition-shadow duration-200">
                 <span className="text-white font-semibold text-sm">
-                  {user.username.charAt(0).toUpperCase()}
+                 {(user.username || user.email || "U").charAt(0).toUpperCase()}
                 </span>
               </button>
             </DropdownMenuTrigger>
