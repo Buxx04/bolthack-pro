@@ -162,7 +162,10 @@ export const History = (): JSX.Element => {
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center hover:shadow-lg transition-shadow duration-200">
                 <span className="text-white font-semibold text-sm">
-                  {user?.username.charAt(0).toUpperCase()}
+                  {user?.username?.charAt(0)?.toUpperCase() 
+  ?? user?.user_metadata?.displayName?.charAt(0)?.toUpperCase() 
+  ?? user?.email?.charAt(0)?.toUpperCase() 
+  ?? "?"}
                 </span>
               </button>
             </DropdownMenuTrigger>
@@ -251,7 +254,10 @@ export const History = (): JSX.Element => {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">
-                    {user?.username.charAt(0).toUpperCase()}
+                    {user?.username?.charAt(0)?.toUpperCase() 
+  ?? user?.user_metadata?.displayName?.charAt(0)?.toUpperCase() 
+  ?? user?.email?.charAt(0)?.toUpperCase() 
+  ?? "?"}
                   </span>
                 </div>
                 <div>

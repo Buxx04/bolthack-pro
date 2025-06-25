@@ -114,7 +114,10 @@ export const Profile = (): JSX.Element => {
           {/* User Profile */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
             <span className="text-white font-semibold text-sm">
-              {user.username.charAt(0).toUpperCase()}
+              {user?.username?.charAt(0)?.toUpperCase()
+  ?? user?.user_metadata?.displayName?.charAt(0)?.toUpperCase()
+  ?? user?.email?.charAt(0)?.toUpperCase()
+  ?? "?"}
             </span>
           </div>
 
@@ -182,7 +185,10 @@ export const Profile = (): JSX.Element => {
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 via-red-500 to-pink-500 flex items-center justify-center">
                     <span className="text-white font-bold text-2xl">
-                      {user.username.charAt(0).toUpperCase()}
+                     {user?.username?.charAt(0)?.toUpperCase() 
+  ?? user?.user_metadata?.displayName?.charAt(0)?.toUpperCase() 
+  ?? user?.email?.charAt(0)?.toUpperCase() 
+  ?? "?"}
                     </span>
                   </div>
                   <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors">
@@ -200,7 +206,7 @@ export const Profile = (): JSX.Element => {
                     </svg>
                   </div>
                   <p className="font-['Inter'] text-gray-500 text-sm mb-1">
-                    ID: {user.id}@smartsphere123
+                    ID: {user.id}
                   </p>
                   <p className="font-['Inter'] text-gray-700 text-sm">
                     Email: {user.email}
