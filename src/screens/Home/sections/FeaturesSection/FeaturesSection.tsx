@@ -46,36 +46,39 @@ export const FeaturesSection = (): JSX.Element => {
       </div>
 
       {/* Feature Cards */}
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 w-full max-w-7xl px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl px-4">
         {features.map((feature, index) => (
           <Card
             key={index}
-            className="flex flex-col w-full lg:w-[400px] items-center gap-8 p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+            className="flex flex-col h-full min-h-[400px] items-center gap-6 p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
           >
-            <CardContent className="flex flex-col items-center gap-6 p-0">
+            <CardContent className="flex flex-col items-center justify-between gap-6 p-0 h-full text-center">
               {/* Icon */}
               <div
-                className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg}`}
+                className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg} flex-shrink-0`}
               >
                 {feature.icon}
               </div>
 
               {/* Step Number */}
               <div
-                className={`font-['Inter'] font-bold ${feature.idColor} text-6xl md:text-7xl leading-none`}
+                className={`font-['Inter'] font-bold ${feature.idColor} text-6xl md:text-7xl leading-none flex-shrink-0`}
               >
                 {feature.id}
               </div>
 
-              {/* Title */}
-              <h3 className="font-['Inter'] font-extrabold text-black text-xl text-center leading-tight">
-                {feature.title}
-              </h3>
+              {/* Content Container */}
+              <div className="flex flex-col gap-4 flex-grow justify-center">
+                {/* Title */}
+                <h3 className="font-['Inter'] font-extrabold text-black text-xl leading-tight">
+                  {feature.title}
+                </h3>
 
-              {/* Description */}
-              <p className="font-['Inter'] font-normal text-gray-600 text-base text-center leading-relaxed">
-                {feature.description}
-              </p>
+                {/* Description */}
+                <p className="font-['Inter'] font-normal text-gray-600 text-base leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             </CardContent>
           </Card>
         ))}
