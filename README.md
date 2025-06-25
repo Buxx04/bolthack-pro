@@ -27,5 +27,5 @@ After a few seconds, your project should be accessible at the address
 If you are satisfied with the result, you can finally build the project for release with:
 
 ```
-npm run build
+npm run buil
 ```
