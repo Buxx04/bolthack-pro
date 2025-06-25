@@ -15,6 +15,7 @@ import {
   NavigationMenuList,
 } from "../../components/ui/navigation-menu";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { supabase } from "../../../supabase/supabaseClient";
 
 export const SignUp = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +26,9 @@ export const SignUp = (): JSX.Element => {
     password: "",
     confirmPassword: "",
   });
+
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const { language, setLanguage, t } = useLanguage();
 
@@ -42,6 +46,25 @@ export const SignUp = (): JSX.Element => {
     e.preventDefault();
     console.log("Sign up attempt:", formData);
   };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+  setMessage('');
+
+  const { data, error } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password,
+  });
+
+  if (error) {
+    setMessage(`❌ ${error.message}`);
+  } else {
+    setMessage('✅ สมัครสมาชิกสำเร็จ! กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');
+  }
+
+  setLoading(false);
+};
 
   return (
     <div 
@@ -179,7 +202,7 @@ export const SignUp = (): JSX.Element => {
               </div>
 
               {/* Sign Up Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-4">
                 {/* Username Field */}
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -276,6 +299,7 @@ export const SignUp = (): JSX.Element => {
                   className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-['Inter'] font-semibold rounded-xl transition-all duration-200 mt-6"
                 >
                   {t('signup.signupButton')}
+                 
                 </Button>
               </form>
 
