@@ -50,14 +50,16 @@ export const FeaturesSection = (): JSX.Element => {
         {features.map((feature, index) => (
           <Card
             key={index}
-            className="flex flex-col h-full min-h-[400px] items-center gap-6 p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+             className="flex flex-col h-[480px] w-full max-w-sm mx-auto bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100"
           >
-            <CardContent className="flex flex-col items-center justify-between gap-6 p-0 h-full text-center">
-              {/* Icon */}
-              <div
-                className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg} flex-shrink-0`}
-              >
-                {feature.icon}
+           <CardContent className="flex flex-col items-center p-8 h-full text-center">Add commentMore actions
+              {/* Icon - Top 40px from start */}
+              <div className="mt-4 mb-6">
+                <div
+                  className={`flex items-center justify-center w-20 h-20 rounded-xl ${feature.iconBg}`}
+                >
+                  {feature.icon}
+                </div>
               </div>
 
               {/* Step Number */}
