@@ -434,6 +434,13 @@ const handleDeleteDocument = async (documentId: string) => {
                    ID: {doc.document_id}
                     </p>
                      
+                    {pdfUrl && (
+      <div>
+        <a href={pdfUrl} target="_blank" rel="noopener noreferrer">เปิด PDF</a>
+      </div>
+    )}
+ 
+
                     </div>
                   </div>
                   
