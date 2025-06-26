@@ -17,6 +17,7 @@ import {
 } from "../../components/ui/navigation-menu";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { supabase } from "../../../supabase/supabaseClient";
 
 export const Upload = (): JSX.Element => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -25,25 +26,25 @@ export const Upload = (): JSX.Element => {
   
   // RFP Form Data
   const [rfpFormData, setRfpFormData] = useState({
-    projectName: "",
-    projectObjective: "",
-    scopeOfWork: "",
-    timeline: "",
-    budget: "",
-    deliverables: "",
-    constraints: ""
+    Project_Name: "",
+    Project_Objective: "",
+    Scope_of_Work: "",
+    Timeline: "",
+    Budget: "",
+    Deliverables: "",
+    Constraints: ""
   });
 
   // TOR Form Data
   const [torFormData, setTorFormData] = useState({
-    projectTitle: "",
-    background: "",
-    objective: "",
-    scopeOfWork: "",
-    deliverables: "",
-    duration: "",
-    evaluationCriteria: "",
-    technicalRequirement: ""
+    Project_Title: "",
+    Background: "",
+    Objective: "",
+    Scope_of_Work: "",
+    Deliverables: "",
+    Duration: "",
+    Evaluation_Criteria: "",
+    Technical_Requirement: ""
   });
 
   // Redirect to login if not authenticated
@@ -65,27 +66,68 @@ export const Upload = (): JSX.Element => {
     setTorFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleAnalyze = () => {
-    if (documentType === 'RFP') {
-      if (!rfpFormData.projectName.trim()) {
-        alert("Please enter a project name");
-        return;
-      }
-      console.log("Analyzing RFP form:", rfpFormData);
-    } else {
-      if (!torFormData.projectTitle.trim()) {
-        alert("Please enter a project title");
-        return;
-      }
-      console.log("Analyzing TOR form:", torFormData);
-    }
-    
-    alert("Analysis started! This would normally process your data.");
+  const [loading, setLoading] = useState(false);
+const [proposalResult, setProposalResult] = useState<any>(null);
+const [error, setError] = useState<string | null>(null);
+
+const handleAnalyze = async () => {
+  setLoading(true);
+  setProposalResult(null);
+  setError(null);
+
+  const fields = documentType === 'RFP' ? rfpFormData : torFormData;
+
+  const payload = {
+    type: documentType,
+    fields,
   };
 
-  const handleLogout = () => {
+  try {
+  
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      throw new Error("ไม่สามารถดึง session ได้");
+    }
+    console.log("Payload:", payload);
+    const response = await fetch(
+      "https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/proposal-gen",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}` 
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "เกิดข้อผิดพลาดจาก API");
+    }
+
+    setProposalResult(data.proposal);
+    console.log("Proposal Result:", data.proposal);
+  } catch (err: any) {
+    setError(err.message || "เกิดข้อผิดพลาด");
+  } finally {
+    setLoading(false);
+  }
+};
+ const handleLogout = () => {
     logout();
   };
+
+  const formatSectionTitle = (key: string): string => {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase()); // Capitalize
+};
 
   return (
     <div className="min-h-screen bg-white">
@@ -288,8 +330,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={rfpFormData.projectName}
-                      onChange={(e) => handleRfpInputChange("projectName", e.target.value)}
+                      value={rfpFormData.Project_Name}
+                      onChange={(e) => handleRfpInputChange("Project_Name", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="Enter project name"
                       required
@@ -304,8 +346,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={rfpFormData.projectObjective}
-                      onChange={(e) => handleRfpInputChange("projectObjective", e.target.value)}
+                      value={rfpFormData.Project_Objective}
+                      onChange={(e) => handleRfpInputChange("Project_Objective", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="Describe the main objective"
                     />
@@ -319,8 +361,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={rfpFormData.timeline}
-                      onChange={(e) => handleRfpInputChange("timeline", e.target.value)}
+                      value={rfpFormData.Timeline}
+                      onChange={(e) => handleRfpInputChange("Timeline", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="e.g., 6 months, Q1 2024"
                     />
@@ -334,8 +376,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={rfpFormData.budget}
-                      onChange={(e) => handleRfpInputChange("budget", e.target.value)}
+                      value={rfpFormData.Budget}
+                      onChange={(e) => handleRfpInputChange("Budget", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="e.g., $50,000"
                     />
@@ -348,8 +390,8 @@ export const Upload = (): JSX.Element => {
                       Scope of Work
                     </label>
                     <textarea
-                      value={rfpFormData.scopeOfWork}
-                      onChange={(e) => handleRfpInputChange("scopeOfWork", e.target.value)}
+                      value={rfpFormData.Scope_of_Work}
+                      onChange={(e) => handleRfpInputChange("Scope_of_Work", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="Define the scope and boundaries of the work"
@@ -363,8 +405,8 @@ export const Upload = (): JSX.Element => {
                       Deliverables
                     </label>
                     <textarea
-                      value={rfpFormData.deliverables}
-                      onChange={(e) => handleRfpInputChange("deliverables", e.target.value)}
+                      value={rfpFormData.Deliverables}
+                      onChange={(e) => handleRfpInputChange("Deliverables", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="List expected deliverables and outcomes"
@@ -378,8 +420,8 @@ export const Upload = (): JSX.Element => {
                       Constraints
                     </label>
                     <textarea
-                      value={rfpFormData.constraints}
-                      onChange={(e) => handleRfpInputChange("constraints", e.target.value)}
+                      value={rfpFormData.Constraints}
+                      onChange={(e) => handleRfpInputChange("Constraints", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="Describe any limitations or constraints"
@@ -412,8 +454,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={torFormData.projectTitle}
-                      onChange={(e) => handleTorInputChange("projectTitle", e.target.value)}
+                      value={torFormData.Project_Title}
+                      onChange={(e) => handleTorInputChange("Project_Title", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="Enter project title"
                       required
@@ -428,8 +470,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={torFormData.objective}
-                      onChange={(e) => handleTorInputChange("objective", e.target.value)}
+                      value={torFormData.Objective}
+                      onChange={(e) => handleTorInputChange("Objective", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="Define the main objective"
                     />
@@ -443,8 +485,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={torFormData.duration}
-                      onChange={(e) => handleTorInputChange("duration", e.target.value)}
+                      value={torFormData.Duration}
+                      onChange={(e) => handleTorInputChange("Duration", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="e.g., 12 months, 2024-2025"
                     />
@@ -458,8 +500,8 @@ export const Upload = (): JSX.Element => {
                     </label>
                     <input
                       type="text"
-                      value={torFormData.evaluationCriteria}
-                      onChange={(e) => handleTorInputChange("evaluationCriteria", e.target.value)}
+                      value={torFormData.Evaluation_Criteria}
+                      onChange={(e) => handleTorInputChange("Evaluation_Criteria", e.target.value)}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
                       placeholder="Define evaluation criteria"
                     />
@@ -472,8 +514,8 @@ export const Upload = (): JSX.Element => {
                       Background (Context)
                     </label>
                     <textarea
-                      value={torFormData.background}
-                      onChange={(e) => handleTorInputChange("background", e.target.value)}
+                      value={torFormData.Background}
+                      onChange={(e) => handleTorInputChange("Background", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="Provide background and context for the project"
@@ -487,8 +529,8 @@ export const Upload = (): JSX.Element => {
                       Scope of Work
                     </label>
                     <textarea
-                      value={torFormData.scopeOfWork}
-                      onChange={(e) => handleTorInputChange("scopeOfWork", e.target.value)}
+                      value={torFormData.Scope_of_Work}
+                      onChange={(e) => handleTorInputChange("Scope_of_Work", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="Define the scope and boundaries of the work"
@@ -502,8 +544,8 @@ export const Upload = (): JSX.Element => {
                       Deliverables
                     </label>
                     <textarea
-                      value={torFormData.deliverables}
-                      onChange={(e) => handleTorInputChange("deliverables", e.target.value)}
+                      value={torFormData.Deliverables}
+                      onChange={(e) => handleTorInputChange("Deliverables", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="List expected deliverables and outcomes"
@@ -517,8 +559,8 @@ export const Upload = (): JSX.Element => {
                       Technical Requirement
                     </label>
                     <textarea
-                      value={torFormData.technicalRequirement}
-                      onChange={(e) => handleTorInputChange("technicalRequirement", e.target.value)}
+                      value={torFormData.Technical_Requirement}
+                      onChange={(e) => handleTorInputChange("Technical_Requirement", e.target.value)}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
                       placeholder="Specify technical requirements and specifications"
@@ -538,6 +580,21 @@ export const Upload = (): JSX.Element => {
               {t('upload.analyzeDocument')}
             </Button>
           </div>
+          {proposalResult && (
+  <div className="mt-6 border p-6 rounded-lg bg-white shadow-md space-y-6">
+    <h2 className="text-2xl font-bold text-blue-700">📄 Proposal Generated</h2>
+    {Object.entries(proposalResult).map(([key, value]) => (
+      <div key={key} className="space-y-2">
+        <h3 className="text-xl font-semibold text-gray-800">
+          {formatSectionTitle(key)}
+        </h3>
+        <div className="whitespace-pre-wrap text-gray-700">
+          {value}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
           {/* Help Text */}
           <div className="mt-8 text-center">
