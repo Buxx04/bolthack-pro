@@ -197,7 +197,7 @@ const handleDeleteDocument = async (documentId: string) => {
 
   
     const res = await fetch(
-      `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/delete-document?document_id=${documentId}`,
+      `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/del-new?document_id=${documentId}`,
       {
         method: "DELETE", 
         headers: {
