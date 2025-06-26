@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import { Link, Navigate } from "react-router-dom";
 import { ChevronDownIcon, DownloadIcon, EyeIcon, TrashIcon } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -18,9 +18,13 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 
+import { supabase } from "../../../supabase/supabaseClient";
+
 export const History = (): JSX.Element => {
   const { isAuthenticated, user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
+
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -33,59 +37,91 @@ export const History = (): JSX.Element => {
     { label: t('nav.analyzer'), active: false, path: "/analyzer" },
   ];
 
-  const historyItems = [
-    {
-      id: 1,
-      name: "Project Sphere[1]",
-      description: t('history.businessPlan'),
-      date: `2 ${t('history.daysAgo')}`,
-      status: "completed"
-    },
-    {
-      id: 2,
-      name: "Project Sphere[2]",
-      description: t('history.marketingStrategy'),
-      date: `5 ${t('history.daysAgo')}`,
-      status: "completed"
-    },
-    {
-      id: 3,
-      name: "Project Sphere[3]",
-      description: t('history.technicalProposal'),
-      date: `1 ${t('history.weekAgo')}`,
-      status: "completed"
-    },
-    {
-      id: 4,
-      name: "Project Sphere[4]",
-      description: t('history.financialAnalysis'),
-      date: `2 ${t('history.weeksAgo')}`,
-      status: "completed"
-    },
-    {
-      id: 5,
-      name: "Project Sphere[5]",
-      description: t('history.researchProposal'),
-      date: `3 ${t('history.weeksAgo')}`,
-      status: "completed"
-    },
-    {
-      id: 6,
-      name: "Project Sphere[6]",
-      description: t('history.strategicPlan'),
-      date: `1 ${t('history.monthAgo')}`,
-      status: "completed"
+  type DocumentType = {
+  project_name: string;
+  document_id: string;
+};
+
+  const [documents, setDocuments] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+  const fetchDocuments = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      setError("User not logged in");
+      return;
     }
-  ];
 
-  const handleLogout = () => {
-    logout();
+    const accessToken = session.access_token;
+
+    const response = await fetch(
+      "https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/list-documents",
+      {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      setError(error);
+      return;
+    }
+
+    const result = await response.json();
+
+    // เก็บ object ทั้งชุด ไม่ map แค่ id
+    setDocuments(result.document_ids);
+
+    console.log("Fetched documents:", result.document_ids);
   };
 
-  const handleView = (id: number) => {
-    console.log("View project:", id);
-    // Navigate to analyzer or results page
-  };
+  fetchDocuments();
+}, []);
+
+const handleLogout = () => {
+  logout();
+};
+
+const [selectedProposal, setSelectedProposal] = useState<any>(null);
+
+const fetchProposal = async (documentId: string) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    alert("กรุณาเข้าสู่ระบบก่อน");
+    return;
+  }
+
+  const response = await fetch(
+    `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/view-document?document_id=${documentId}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json();
+    console.error("Fetch proposal error:", err);
+    alert("ดึงข้อมูล proposal ไม่สำเร็จ");
+    return;
+  }
+
+  const { proposal } = await response.json();
+  console.log("Proposal fetched:", proposal);
+  setSelectedProposal(proposal); // setState เพื่อแสดงผล
+};
+
 
   const handleDownload = (id: number) => {
     console.log("Download project:", id);
@@ -287,8 +323,13 @@ export const History = (): JSX.Element => {
 
             {/* History List */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              {historyItems.map((item, index) => (
-                <div key={item.id} className={`flex items-center justify-between p-6 ${index !== historyItems.length - 1 ? 'border-b border-gray-100' : ''}`}>
+              {documents.map((doc, index) => (
+                <div
+                 key={doc.document_id} 
+                className={`flex items-center justify-between p-6 ${
+                index !== documents.length - 1 ? "border-b border-gray-100" : ""
+                }`}
+                >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
                       <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,23 +337,21 @@ export const History = (): JSX.Element => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-['Inter'] font-semibold text-black text-base">
-                        {item.name}
-                      </h3>
-                      <p className="font-['Inter'] text-gray-500 text-sm">
-                        {item.description}
-                      </p>
+            <h3 className="font-['Inter'] font-semibold text-black text-base">
+          {doc.project_name}
+        </h3>
+        <p className="font-['Inter'] text-gray-500 text-sm">
+          ID: {doc.document_id}
+        </p>
+                     
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4">
-                    <span className="font-['Inter'] text-gray-400 text-sm">
-                      {item.date}
-                    </span>
                     
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleView(item.id)}
+                        onClick={() => fetchProposal(doc.document_id)}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                         title={t('history.view')}
                       >
