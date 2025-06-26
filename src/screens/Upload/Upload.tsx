@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ChevronDownIcon, FolderIcon, TargetIcon, BriefcaseIcon, ClockIcon, DollarSignIcon, PackageIcon, AlertTriangleIcon } from "lucide-react";
+import { ChevronDownIcon, FolderIcon, TargetIcon, BriefcaseIcon, ClockIcon, DollarSignIcon, PackageIcon, AlertTriangleIcon, BookOpenIcon, CheckCircleIcon, SettingsIcon } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +21,10 @@ import { useLanguage } from "../../contexts/LanguageContext";
 export const Upload = (): JSX.Element => {
   const { isAuthenticated, user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
-  const [formData, setFormData] = useState({
+  const [documentType, setDocumentType] = useState<'RFP' | 'TOR'>('RFP');
+  
+  // RFP Form Data
+  const [rfpFormData, setRfpFormData] = useState({
     projectName: "",
     projectObjective: "",
     scopeOfWork: "",
@@ -29,6 +32,18 @@ export const Upload = (): JSX.Element => {
     budget: "",
     deliverables: "",
     constraints: ""
+  });
+
+  // TOR Form Data
+  const [torFormData, setTorFormData] = useState({
+    projectTitle: "",
+    background: "",
+    objective: "",
+    scopeOfWork: "",
+    deliverables: "",
+    duration: "",
+    evaluationCriteria: "",
+    technicalRequirement: ""
   });
 
   // Redirect to login if not authenticated
@@ -42,20 +57,30 @@ export const Upload = (): JSX.Element => {
     { label: t('nav.analyzer'), active: false, path: "/analyzer" },
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleRfpInputChange = (field: string, value: string) => {
+    setRfpFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTorInputChange = (field: string, value: string) => {
+    setTorFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleAnalyze = () => {
-    if (!formData.projectName.trim()) {
-      alert("Please enter a project name");
-      return;
+    if (documentType === 'RFP') {
+      if (!rfpFormData.projectName.trim()) {
+        alert("Please enter a project name");
+        return;
+      }
+      console.log("Analyzing RFP form:", rfpFormData);
+    } else {
+      if (!torFormData.projectTitle.trim()) {
+        alert("Please enter a project title");
+        return;
+      }
+      console.log("Analyzing TOR form:", torFormData);
     }
-
-    console.log("Analyzing project:", formData);
     
-    // Here you would typically send the data to your backend for processing
-    alert("Project analysis started! This would normally process your data.");
+    alert("Analysis started! This would normally process your data.");
   };
 
   const handleLogout = () => {
@@ -127,7 +152,7 @@ export const Upload = (): JSX.Element => {
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center hover:shadow-lg transition-shadow duration-200">
                 <span className="text-white font-semibold text-sm">
-                {user?.username?.charAt(0)?.toUpperCase()
+                  {user?.username?.charAt(0)?.toUpperCase()
   ?? user?.user_metadata?.displayName?.charAt(0)?.toUpperCase()
   ?? user?.email?.charAt(0)?.toUpperCase()
   ?? "?"}
@@ -197,129 +222,312 @@ export const Upload = (): JSX.Element => {
               />
             </div>
             <h1 className="font-['Inter'] font-bold text-black text-4xl md:text-5xl mb-4">
-              Create Project Analysis
+              {t('upload.title')}
             </h1>
             <p className="font-['Inter'] font-normal text-gray-600 text-xl">
-              Fill in the project details to generate comprehensive analysis and proposals
+              {t('upload.subtitle')}
             </p>
           </div>
 
-          {/* Project Information Form */}
+          {/* Document Type Selection */}
           <div className="mb-8">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-              <h2 className="font-['Inter'] font-semibold text-black text-2xl mb-6">
-                Project Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Project Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <FolderIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.projectName')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.projectName}
-                    onChange={(e) => handleInputChange("projectName", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                    placeholder={t('upload.projectNamePlaceholder')}
-                    required
-                  />
-                </div>
-
-                {/* Project Objective */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <TargetIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.projectObjective')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.projectObjective}
-                    onChange={(e) => handleInputChange("projectObjective", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                    placeholder={t('upload.projectObjectivePlaceholder')}
-                  />
-                </div>
-
-                {/* Timeline */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <ClockIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.timeline')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.timeline}
-                    onChange={(e) => handleInputChange("timeline", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                    placeholder={t('upload.timelinePlaceholder')}
-                  />
-                </div>
-
-                {/* Budget */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <DollarSignIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.budget')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.budget}
-                    onChange={(e) => handleInputChange("budget", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                    placeholder={t('upload.budgetPlaceholder')}
-                  />
-                </div>
-
-                {/* Scope of Work */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <BriefcaseIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.scopeOfWork')}
-                  </label>
-                  <textarea
-                    value={formData.scopeOfWork}
-                    onChange={(e) => handleInputChange("scopeOfWork", e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
-                    placeholder={t('upload.scopeOfWorkPlaceholder')}
-                  />
-                </div>
-
-                {/* Deliverables */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <PackageIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.deliverables')}
-                  </label>
-                  <textarea
-                    value={formData.deliverables}
-                    onChange={(e) => handleInputChange("deliverables", e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
-                    placeholder={t('upload.deliverablesPlaceholder')}
-                  />
-                </div>
-
-                {/* Constraints */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
-                    <AlertTriangleIcon className="w-4 h-4 inline mr-2" />
-                    {t('upload.constraints')}
-                  </label>
-                  <textarea
-                    value={formData.constraints}
-                    onChange={(e) => handleInputChange("constraints", e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
-                    placeholder={t('upload.constraintsPlaceholder')}
-                  />
-                </div>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h3 className="font-['Inter'] font-semibold text-black text-lg mb-4">
+                Document Type
+              </h3>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setDocumentType('RFP')}
+                  className={`flex-1 px-6 py-4 rounded-xl border-2 transition-all duration-200 ${
+                    documentType === 'RFP'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 font-semibold'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <BriefcaseIcon className="w-5 h-5" />
+                    <span>RFP (Request for Proposal)</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setDocumentType('TOR')}
+                  className={`flex-1 px-6 py-4 rounded-xl border-2 transition-all duration-200 ${
+                    documentType === 'TOR'
+                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-semibold'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <BookOpenIcon className="w-5 h-5" />
+                    <span>TOR (Terms of Reference)</span>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
+
+          {/* RFP Form */}
+          {documentType === 'RFP' && (
+            <div className="mb-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <BriefcaseIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h2 className="font-['Inter'] font-semibold text-black text-2xl">
+                    RFP Information
+                  </h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Project Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <FolderIcon className="w-4 h-4 inline mr-2" />
+                      Project Name
+                    </label>
+                    <input
+                      type="text"
+                      value={rfpFormData.projectName}
+                      onChange={(e) => handleRfpInputChange("projectName", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="Enter project name"
+                      required
+                    />
+                  </div>
+
+                  {/* Project Objective */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <TargetIcon className="w-4 h-4 inline mr-2" />
+                      Project Objective
+                    </label>
+                    <input
+                      type="text"
+                      value={rfpFormData.projectObjective}
+                      onChange={(e) => handleRfpInputChange("projectObjective", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="Describe the main objective"
+                    />
+                  </div>
+
+                  {/* Timeline */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <ClockIcon className="w-4 h-4 inline mr-2" />
+                      Timeline
+                    </label>
+                    <input
+                      type="text"
+                      value={rfpFormData.timeline}
+                      onChange={(e) => handleRfpInputChange("timeline", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="e.g., 6 months, Q1 2024"
+                    />
+                  </div>
+
+                  {/* Budget */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <DollarSignIcon className="w-4 h-4 inline mr-2" />
+                      Budget
+                    </label>
+                    <input
+                      type="text"
+                      value={rfpFormData.budget}
+                      onChange={(e) => handleRfpInputChange("budget", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="e.g., $50,000"
+                    />
+                  </div>
+
+                  {/* Scope of Work */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <BriefcaseIcon className="w-4 h-4 inline mr-2" />
+                      Scope of Work
+                    </label>
+                    <textarea
+                      value={rfpFormData.scopeOfWork}
+                      onChange={(e) => handleRfpInputChange("scopeOfWork", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Define the scope and boundaries of the work"
+                    />
+                  </div>
+
+                  {/* Deliverables */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <PackageIcon className="w-4 h-4 inline mr-2" />
+                      Deliverables
+                    </label>
+                    <textarea
+                      value={rfpFormData.deliverables}
+                      onChange={(e) => handleRfpInputChange("deliverables", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="List expected deliverables and outcomes"
+                    />
+                  </div>
+
+                  {/* Constraints */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <AlertTriangleIcon className="w-4 h-4 inline mr-2" />
+                      Constraints
+                    </label>
+                    <textarea
+                      value={rfpFormData.constraints}
+                      onChange={(e) => handleRfpInputChange("constraints", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Describe any limitations or constraints"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TOR Form */}
+          {documentType === 'TOR' && (
+            <div className="mb-8">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <BookOpenIcon className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h2 className="font-['Inter'] font-semibold text-black text-2xl">
+                    TOR Information
+                  </h2>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Project Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <FolderIcon className="w-4 h-4 inline mr-2" />
+                      Project Title
+                    </label>
+                    <input
+                      type="text"
+                      value={torFormData.projectTitle}
+                      onChange={(e) => handleTorInputChange("projectTitle", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="Enter project title"
+                      required
+                    />
+                  </div>
+
+                  {/* Objective */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <TargetIcon className="w-4 h-4 inline mr-2" />
+                      Objective
+                    </label>
+                    <input
+                      type="text"
+                      value={torFormData.objective}
+                      onChange={(e) => handleTorInputChange("objective", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="Define the main objective"
+                    />
+                  </div>
+
+                  {/* Duration */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <ClockIcon className="w-4 h-4 inline mr-2" />
+                      Duration
+                    </label>
+                    <input
+                      type="text"
+                      value={torFormData.duration}
+                      onChange={(e) => handleTorInputChange("duration", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="e.g., 12 months, 2024-2025"
+                    />
+                  </div>
+
+                  {/* Evaluation Criteria */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <CheckCircleIcon className="w-4 h-4 inline mr-2" />
+                      Evaluation Criteria
+                    </label>
+                    <input
+                      type="text"
+                      value={torFormData.evaluationCriteria}
+                      onChange={(e) => handleTorInputChange("evaluationCriteria", e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
+                      placeholder="Define evaluation criteria"
+                    />
+                  </div>
+
+                  {/* Background (Context) */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <BookOpenIcon className="w-4 h-4 inline mr-2" />
+                      Background (Context)
+                    </label>
+                    <textarea
+                      value={torFormData.background}
+                      onChange={(e) => handleTorInputChange("background", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Provide background and context for the project"
+                    />
+                  </div>
+
+                  {/* Scope of Work */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <BriefcaseIcon className="w-4 h-4 inline mr-2" />
+                      Scope of Work
+                    </label>
+                    <textarea
+                      value={torFormData.scopeOfWork}
+                      onChange={(e) => handleTorInputChange("scopeOfWork", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Define the scope and boundaries of the work"
+                    />
+                  </div>
+
+                  {/* Deliverables */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <PackageIcon className="w-4 h-4 inline mr-2" />
+                      Deliverables
+                    </label>
+                    <textarea
+                      value={torFormData.deliverables}
+                      onChange={(e) => handleTorInputChange("deliverables", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="List expected deliverables and outcomes"
+                    />
+                  </div>
+
+                  {/* Technical Requirement */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 font-['Inter']">
+                      <SettingsIcon className="w-4 h-4 inline mr-2" />
+                      Technical Requirement
+                    </label>
+                    <textarea
+                      value={torFormData.technicalRequirement}
+                      onChange={(e) => handleTorInputChange("technicalRequirement", e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Specify technical requirements and specifications"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Generate Analysis Button */}
           <div className="text-center">
@@ -327,14 +535,14 @@ export const Upload = (): JSX.Element => {
               onClick={handleAnalyze}
               className="px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-['Inter'] font-semibold text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              Generate Analysis
+              {t('upload.analyzeDocument')}
             </Button>
           </div>
 
           {/* Help Text */}
           <div className="mt-8 text-center">
             <p className="font-['Inter'] text-gray-500 text-sm">
-              Your project information will be analyzed securely and privately. We don't store your data.
+              {t('upload.secureNote')}
             </p>
           </div>
         </div>
