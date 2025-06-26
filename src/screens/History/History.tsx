@@ -63,7 +63,7 @@ const handleGeneratePdf = async (documentId: string) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // ✅ ใช้ token ที่เชื่อถือได้
+        'Authorization': `Bearer ${token}` 
       },
       body: JSON.stringify({ documentId })
     });
