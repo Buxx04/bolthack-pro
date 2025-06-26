@@ -218,43 +218,7 @@ export const Profile = (): JSX.Element => {
               </div>
 
               {/* Change Password Section */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                <h2 className="font-['Inter'] font-semibold text-xl text-black mb-6">
-                  {t('profile.changePassword')}
-                </h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <input
-                      type="password"
-                      value={passwords.old}
-                      onChange={(e) => handlePasswordChange("old", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                      placeholder={t('profile.oldPassword')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <input
-                      type="password"
-                      value={passwords.new}
-                      onChange={(e) => handlePasswordChange("new", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                      placeholder={t('profile.newPassword')}
-                    />
-                  </div>
-                  
-                  <div>
-                    <input
-                      type="password"
-                      value={passwords.confirm}
-                      onChange={(e) => handlePasswordChange("confirm", e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-['Inter'] text-gray-900 placeholder-gray-400 bg-white"
-                      placeholder={t('profile.confirmNewPassword')}
-                    />
-                  </div>
-                </div>
-              </div>
+             
             </div>
           )}
 
