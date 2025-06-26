@@ -149,19 +149,22 @@ export const Profile = (): JSX.Element => {
         {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200 p-6">
           <nav className="space-y-2">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveTab(item.label)}
-                className={`w-full text-left px-4 py-3 rounded-lg font-['Inter'] transition-colors duration-200 ${
-                  item.active
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 font-normal"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab("Profile")}
+              className={`w-full text-left px-4 py-3 rounded-lg font-['Inter'] transition-colors duration-200 ${
+                activeTab === "Profile"
+                  ? "bg-blue-50 text-blue-600 font-medium"
+                  : "text-gray-600 hover:bg-gray-50 font-normal"
+              }`}
+            >
+              {t('nav.profile')}
+            </button>
+            <Link
+              to="/history"
+              className="block w-full text-left px-4 py-3 rounded-lg font-['Inter'] text-gray-600 hover:bg-gray-50 font-normal transition-colors duration-200"
+            >
+              {t('nav.history')}
+            </Link>
           </nav>
 
           {/* Sign Out Button */}
