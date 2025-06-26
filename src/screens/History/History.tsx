@@ -182,15 +182,46 @@ const fetchProposal = async (documentId: string) => {
 };
 
 
-  const handleDownload = (id: number) => {
-    console.log("Download project:", id);
-    // Download the analysis results
-  };
+ 
 
-  const handleDelete = (id: number) => {
-    console.log("Delete project:", id);
-    // Delete the project from history
-  };
+const handleDeleteDocument = async (documentId: string) => {
+  try {
+    
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      alert("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    const accessToken = session.access_token;
+
+  
+    const res = await fetch(
+      `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/delete-document?document_id=${documentId}`,
+      {
+        method: "DELETE", 
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      console.error("Delete failed:", result.error);
+      alert(`ลบไม่สำเร็จ: ${result.error}`);
+      return;
+    }
+
+    alert("ลบสำเร็จแล้ว");
+    // 👉 รีเฟรชหรืออัปเดต state หลังลบ
+  } catch (err: any) {
+    console.error("Unexpected error:", err);
+    alert("เกิดข้อผิดพลาดขณะลบเอกสาร");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -427,7 +458,7 @@ const fetchProposal = async (documentId: string) => {
                       </button>
                       
                       <button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDeleteDocument(doc.document_id)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                         title={t('history.delete')}
                       >
