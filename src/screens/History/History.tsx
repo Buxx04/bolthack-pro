@@ -20,11 +20,12 @@ import { useLanguage } from "../../contexts/LanguageContext";
 
 import { supabase } from "../../../supabase/supabaseClient";
 
+
 export const History = (): JSX.Element => {
   const { isAuthenticated, user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [historyItems, setHistoryItems] = useState<any[]>([]);
-
+const [modalOpen, setModalOpen] = useState(false);
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -120,6 +121,7 @@ const fetchProposal = async (documentId: string) => {
   const { proposal } = await response.json();
   console.log("Proposal fetched:", proposal);
   setSelectedProposal(proposal); // setState เพื่อแสดงผล
+  setModalOpen(true);
 };
 
 
@@ -337,12 +339,12 @@ const fetchProposal = async (documentId: string) => {
                       </svg>
                     </div>
                     <div>
-            <h3 className="font-['Inter'] font-semibold text-black text-base">
-          {doc.project_name}
-        </h3>
-        <p className="font-['Inter'] text-gray-500 text-sm">
-          ID: {doc.document_id}
-        </p>
+                      <h3 className="font-['Inter'] font-semibold text-black text-base">
+                  {doc.project_name}
+                    </h3>
+                     <p className="font-['Inter'] text-gray-500 text-sm">
+                   ID: {doc.document_id}
+                    </p>
                      
                     </div>
                   </div>
@@ -355,6 +357,7 @@ const fetchProposal = async (documentId: string) => {
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                         title={t('history.view')}
                       >
+                        
                         <EyeIcon className="w-4 h-4" />
                       </button>
                       
@@ -378,8 +381,84 @@ const fetchProposal = async (documentId: string) => {
                 </div>
               ))}
             </div>
+            
+
+                {modalOpen && selectedProposal && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start pt-16 pb-16 px-4 z-50 overflow-auto"
+    onClick={() => setModalOpen(false)}
+  >
+    <div
+      className="bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 print:p-0 print:max-h-auto print:overflow-visible"
+      onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกใน modal
+      style={{ fontFamily: "'Times New Roman', serif" }}
+    >
+      {/* ชื่อเรื่องใหญ่ หน้ากระดาษ */}
+      <h1 className="text-4xl font-bold mb-8 text-center">{selectedProposal.proposal_title}</h1>
+
+      {/* แต่ละ section จะแยกด้วยเส้นใต้ และมี spacing เยอะ */}
+      <section className="mb-8">
+        <h2 className="font-semibold text-2xl border-b border-gray-300 pb-2 mb-4">
+          Executive Summary
+        </h2>
+        <p className="whitespace-pre-line text-justify leading-relaxed text-gray-800">
+          {selectedProposal.executive_summary}
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="font-semibold text-2xl border-b border-gray-300 pb-2 mb-4">
+          Client Needs Understanding
+        </h2>
+        <p className="whitespace-pre-line text-justify leading-relaxed text-gray-800">
+          {selectedProposal.client_needs_understanding}
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="font-semibold text-2xl border-b border-gray-300 pb-2 mb-4">
+          Proposed Solution Description
+        </h2>
+        <p className="whitespace-pre-line text-justify leading-relaxed text-gray-800">
+          {selectedProposal.proposed_solution_description}
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="font-semibold text-2xl border-b border-gray-300 pb-2 mb-4">
+          Work Plan Timeline
+        </h2>
+        <p className="whitespace-pre-line text-justify leading-relaxed text-gray-800">
+          {selectedProposal.work_plan_timeline}
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="font-semibold text-2xl border-b border-gray-300 pb-2 mb-4">
+          Financial Proposal Details
+        </h2>
+        <p className="whitespace-pre-line text-justify leading-relaxed text-gray-800">
+          {selectedProposal.financial_proposal_details}
+        </p>
+      </section>
+
+      {/* ปุ่มปิด */}
+      <div className="text-center">
+        <button
+          onClick={() => setModalOpen(false)}
+          className="inline-block mt-6 px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+            
           </div>
         </div>
+        
       </div>
     </div>
   );
