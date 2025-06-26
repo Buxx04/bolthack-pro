@@ -27,6 +27,63 @@ export const History = (): JSX.Element => {
   const [historyItems, setHistoryItems] = useState<any[]>([]);
 const [modalOpen, setModalOpen] = useState(false);
 
+interface ApiResponse {
+  file?: string;
+  url?: string;
+  error?: string;
+}
+
+
+const [fetchError, setFetchError] = useState<string | null>(null); // สำหรับดึงเอกสาร
+const [pdfError, setPdfError] = useState<string | null>(null); // สำหรับ export PDF
+const [loading, setLoading] = useState(false);
+const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+const handleGeneratePdf = async (documentId: string) => {
+  setLoading(true);
+  setPdfError(null);
+  setPdfUrl(null);
+
+  // ✅ ดึง token ที่ถูกต้องจาก Supabase SDK
+  const {
+    data: { session },
+    error
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    setPdfError("ยังไม่ได้เข้าสู่ระบบ หรือ session หมดอายุ");
+    setLoading(false);
+    return;
+  }
+
+  const token = session.access_token;
+
+  try {
+    const res = await fetch('https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/export-pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // ✅ ใช้ token ที่เชื่อถือได้
+      },
+      body: JSON.stringify({ documentId })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setPdfError(data.error || 'เกิดข้อผิดพลาด');
+    } else {
+      setPdfUrl(data.url || null);
+      console.log("PDF URL:", data.url);
+    }
+  } catch (err: any) {
+    setPdfError(err.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
+  }
+
+  setLoading(false);
+};
+
+
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -362,7 +419,7 @@ const fetchProposal = async (documentId: string) => {
                       </button>
                       
                       <button
-                        onClick={() => handleDownload(item.id)}
+                        onClick={() => handleGeneratePdf(doc.document_id)}
                         className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
                         title={t('history.download')}
                       >
