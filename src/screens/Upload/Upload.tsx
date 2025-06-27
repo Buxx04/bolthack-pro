@@ -620,9 +620,7 @@ const handleAnalyze = async () => {
 
           {/* Help Text */}
           <div className="mt-8 text-center">
-            <p className="font-['Inter'] text-gray-500 text-sm">
-              {t('upload.secureNote')}
-            </p>
+          
           </div>
         </div>
       </div>
