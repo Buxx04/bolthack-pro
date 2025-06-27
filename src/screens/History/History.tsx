@@ -101,7 +101,7 @@ const handleGeneratePdf = async (documentId: string) => {
   document_id: string;
 };
 
-  const [documents, setDocuments] = useState<string[]>([]);
+  const [documents, setDocuments] = useState<DocumentType[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -187,8 +187,11 @@ const fetchProposal = async (documentId: string) => {
 
 const handleDeleteDocument = async (documentId: string) => {
   try {
-    
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
     if (error || !session) {
       alert("กรุณาเข้าสู่ระบบก่อน");
       return;
@@ -196,13 +199,12 @@ const handleDeleteDocument = async (documentId: string) => {
 
     const accessToken = session.access_token;
 
-  
     const res = await fetch(
       `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/del-new?document_id=${documentId}`,
       {
-        method: "DELETE", 
+        method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       }
@@ -217,7 +219,11 @@ const handleDeleteDocument = async (documentId: string) => {
     }
 
     alert("ลบสำเร็จแล้ว");
-    // 👉 รีเฟรชหรืออัปเดต state หลังลบ
+
+    // Refresh documents state after deletion
+    setDocuments((prevDocuments) =>
+      prevDocuments.filter((doc) => doc.document_id !== documentId)
+    );
   } catch (err: any) {
     console.error("Unexpected error:", err);
     alert("เกิดข้อผิดพลาดขณะลบเอกสาร");
