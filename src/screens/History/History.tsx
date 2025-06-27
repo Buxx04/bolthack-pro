@@ -38,13 +38,14 @@ const [fetchError, setFetchError] = useState<string | null>(null); // สำห�
 const [pdfError, setPdfError] = useState<string | null>(null); // สำหรับ export PDF
 const [loading, setLoading] = useState(false);
 const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
 const handleGeneratePdf = async (documentId: string) => {
   setLoading(true);
   setPdfError(null);
   setPdfUrl(null);
+  setSelectedDocumentId(documentId); // ✅ บอกว่าเรากดตัวไหนอยู่
 
-  // ✅ ดึง token ที่ถูกต้องจาก Supabase SDK
   const {
     data: { session },
     error
@@ -434,11 +435,18 @@ const handleDeleteDocument = async (documentId: string) => {
                    ID: {doc.document_id}
                     </p>
                      
-                    {pdfUrl && (
-      <div>
-        <a href={pdfUrl} target="_blank" rel="noopener noreferrer">เปิด PDF</a>
-      </div>
-    )}
+               {pdfUrl && selectedDocumentId === doc.document_id && (
+          <div className="mt-2">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 underline text-sm"
+            >
+              เปิด PDF
+            </a>
+          </div>
+        )}
  
 
                     </div>
