@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { supabase } from '../../supabase/supabaseClient'; // import client ที่เชื่อม Supabase
+import { supabase } from '../../supabase/supabaseClient';
 
 interface User {
   id: string;
@@ -12,6 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,19 +31,24 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // เพิ่มสถานะโหลด
 
-  // 🔄 ตรวจสอบ session เมื่อ component โหลดครั้งแรก
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const sessionUser = data.session?.user;
-      if (sessionUser) {
+    // ใช้ async function ภายใน useEffect เพื่อให้ await ได้
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        const sessionUser = data.session.user;
         setUser({
           id: sessionUser.id,
           email: sessionUser.email ?? '',
           avatar_url: sessionUser.user_metadata?.avatar_url ?? '',
         });
       }
-    });
+      setIsLoading(false);
+    };
+
+    checkSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -91,7 +97,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     login,
     logout,
+    isLoading,
   };
+
+  // ระหว่าง loading ให้แสดง loading indicator หรือ null
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
