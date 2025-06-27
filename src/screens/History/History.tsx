@@ -39,49 +39,50 @@ const [pdfError, setPdfError] = useState<string | null>(null); // สำหร�
 const [loading, setLoading] = useState(false);
 const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+const [loadingDocId, setLoadingDocId] = useState(null);
 
 const handleGeneratePdf = async (documentId: string) => {
-  setLoading(true);
+  setLoadingDocId(documentId);
   setPdfError(null);
   setPdfUrl(null);
-  setSelectedDocumentId(documentId); // ✅ บอกว่าเรากดตัวไหนอยู่
+  setSelectedDocumentId(documentId);
 
-  const {
-    data: { session },
-    error
-  } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabase.auth.getSession();
 
   if (!session) {
     setPdfError("ยังไม่ได้เข้าสู่ระบบ หรือ session หมดอายุ");
-    setLoading(false);
+    setLoadingDocId(null);
     return;
   }
 
   const token = session.access_token;
 
   try {
-    const res = await fetch('https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/export-pdf', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({ documentId })
-    });
+    const res = await fetch(
+      "https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/export-pdf",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ documentId }),
+      }
+    );
 
     const data = await res.json();
 
     if (!res.ok) {
-      setPdfError(data.error || 'เกิดข้อผิดพลาด');
+      setPdfError(data.error || "เกิดข้อผิดพลาด");
     } else {
       setPdfUrl(data.url || null);
       console.log("PDF URL:", data.url);
     }
   } catch (err: any) {
-    setPdfError(err.message || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ');
+    setPdfError(err.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ");
   }
 
-  setLoading(false);
+  setLoadingDocId(null);
 };
 
 
@@ -471,12 +472,21 @@ const handleDeleteDocument = async (documentId: string) => {
                       </button>
                       
                       <button
-                        onClick={() => handleGeneratePdf(doc.document_id)}
-                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                        title={t('history.download')}
-                      >
-                        <DownloadIcon className="w-4 h-4" />
-                      </button>
+  onClick={() => handleGeneratePdf(doc.document_id)}
+  disabled={loadingDocId === doc.document_id}
+  className={`p-2 rounded-lg transition-colors duration-200 ${
+    loadingDocId === doc.document_id
+      ? "text-gray-400 cursor-not-allowed"
+      : "text-gray-400 hover:text-green-600 hover:bg-green-50"
+  }`}
+  title={t("history.download")}
+>
+  {loadingDocId === doc.document_id ? (
+    <span className="text-xs">Loading...</span>
+  ) : (
+    <DownloadIcon className="w-4 h-4" />
+  )}
+</button>
                       
                       <button
                         onClick={() => handleDeleteDocument(doc.document_id)}
