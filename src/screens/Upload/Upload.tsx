@@ -573,12 +573,34 @@ const handleAnalyze = async () => {
 
           {/* Generate Analysis Button */}
           <div className="text-center">
-            <Button
-              onClick={handleAnalyze}
-              className="px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-['Inter'] font-semibold text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              {t('upload.analyzeDocument')}
-            </Button>
+           <Button
+  onClick={handleAnalyze}
+  disabled={loading}
+  className={`px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-['Inter'] font-semibold text-lg rounded-xl transition-all duration-300 shadow-lg transform ${
+    loading ? 'opacity-60 cursor-not-allowed' : 'hover:from-blue-700 hover:to-purple-700 hover:shadow-xl hover:scale-105'
+  }`}
+>
+  {loading ? (
+    <div className="flex items-center gap-2">
+      <svg
+        className="animate-spin h-5 w-5 text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        />
+      </svg>
+      <span>กำลังประมวลผล...</span>
+    </div>
+  ) : (
+    t('upload.analyzeDocument')
+  )}
+</Button>
           </div>
           {proposalResult && (
   <div className="mt-6 border p-6 rounded-lg bg-white shadow-md space-y-6">
