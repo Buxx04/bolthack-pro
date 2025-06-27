@@ -65,7 +65,7 @@ export const SignUp = (): JSX.Element => {
   if (error) {
     setMessage(`❌ ${error.message}`);
   } else {
-    setMessage('✅ สมัครสมาชิกสำเร็จ! กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');
+    alert('✅ สมัครสมาชิกสำเร็จ! กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');
   }
 
   setLoading(false);
