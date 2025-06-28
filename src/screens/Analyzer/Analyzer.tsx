@@ -1,6 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ChevronDownIcon, SearchIcon, AlertTriangleIcon, CheckCircleIcon, UsersIcon, BriefcaseIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  SearchIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  UsersIcon,
+  BriefcaseIcon
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import {
@@ -18,10 +25,16 @@ import {
 } from "../../components/ui/navigation-menu";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { supabase } from "../../../supabase/supabaseClient";
 
 export const Analyzer = (): JSX.Element => {
   const { isAuthenticated, user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [analysis, setAnalysis] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -73,6 +86,92 @@ export const Analyzer = (): JSX.Element => {
   const handleLogout = () => {
     logout();
   };
+
+useEffect(() => {
+  const fetchDocuments = async () => {
+    try {
+      // ดึง session และ access_token ของ user ปัจจุบัน
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        console.error('❌ ไม่มี session หรือ error:', error);
+        setDocuments([]);
+        return;
+      }
+
+      const token = session.access_token;
+      const userId = session.user.id; // ดึง user id จาก session
+
+      const res = await fetch(
+        `https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/list-analyzer?user_id=${encodeURIComponent(userId)}`, // แนบ user_id ไปใน query
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,  // ใช้ token จาก session
+          },
+        }
+      );
+
+      const data = await res.json();
+      console.log("📦 ได้ข้อมูล documents:", data);
+
+      if (Array.isArray(data)) {
+        setDocuments(data);
+      } else {
+        console.error("❌ ไม่ใช่ array:", data);
+        setDocuments([]); // fallback กันหน้าแตก
+      }
+    } catch (err) {
+      console.error('❌ โหลดเอกสารล้มเหลว:', err);
+      setDocuments([]);
+    }
+  };
+
+  fetchDocuments();
+}, []);
+
+
+const handleAnalyze = async () => {
+  if (!selectedId) return;
+
+  setLoading(true);
+  try {
+    // ดึง session และ token ของ user ปัจจุบัน
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      console.error('❌ ไม่มี session หรือ error:', error);
+      setAnalysis('กรุณาล็อกอินก่อนทำการวิเคราะห์');
+      setLoading(false);
+      return;
+    }
+
+    const token = session.access_token;
+
+    const res = await fetch('https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/smooth-responder', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,  // เพิ่มส่วนนี้
+      },
+      body: JSON.stringify({ document_id: selectedId }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      setAnalysis(errorData.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+    } else {
+      const result = await res.json();
+      setAnalysis(result.result || 'ไม่พบข้อมูล');
+    }
+  } catch (err) {
+    console.error('❌ วิเคราะห์เอกสารล้มเหลว:', err);
+    setAnalysis('เกิดข้อผิดพลาดในการวิเคราะห์');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -242,25 +341,28 @@ export const Analyzer = (): JSX.Element => {
           </div>
 
           {/* Analysis Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {analysisResults.map((result, index) => (
-              <Card key={index} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <CardContent className="flex items-start gap-4 p-0">
-                  <div className={`flex w-16 h-16 items-center justify-center rounded-xl ${result.iconBg} flex-shrink-0`}>
-                    {result.icon}
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1">
-                    <h3 className="font-['Inter'] font-semibold text-black text-xl">
-                      {result.title}
-                    </h3>
-                    <p className="font-['Inter'] font-normal text-gray-600 text-base">
-                      {result.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+         <div>
+      <select onChange={(e) => setSelectedId(e.target.value)}>
+  <option value="">-- เลือกเอกสาร --</option>
+  {documents.map((doc) => (
+    <option key={doc.document_id} value={doc.document_id}>
+      {doc.project_name}  {/* เปลี่ยนตรงนี้จาก file_name เป็น project_name */}
+    </option>
+  ))}
+</select>
+
+      <button onClick={handleAnalyze} disabled={loading || !selectedId}>
+        {loading ? 'กำลังวิเคราะห์...' : 'วิเคราะห์'}
+      </button>
+
+      {analysis && (
+        <div className="mt-4 p-4 border rounded bg-gray-100">
+          <h3>ผลการวิเคราะห์:</h3>
+          <p>{analysis}</p>
+        </div>
+      )}
+    </div>
+  
         </div>
       </div>
     </div>
