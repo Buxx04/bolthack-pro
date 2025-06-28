@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect,useRef, useState , useMemo } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   ChevronDownIcon,
@@ -35,6 +35,9 @@ export const Analyzer = (): JSX.Element => {
   const [selectedId, setSelectedId] = useState('');
   const [analysis, setAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>({});
+  const [analysisResult1, setAnalysisResult1] = useState<any>({});
+  const [analysisResult2, setAnalysisResult2] = useState<any>({});
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
@@ -46,27 +49,30 @@ export const Analyzer = (): JSX.Element => {
     { label: t('nav.upload'), active: false, path: "/upload" },
     { label: t('nav.analyzer'), active: true, path: "/analyzer" },
   ];
+const issueCount = analysisResult?.risks_and_concerns?.length || 0;
+const issueCount1 = analysisResult?.unique_differentiators?.length || 0;
+const issueCount2 = analysisResult?.actionable_recommendations?.length || 0;
 
-  const insightCards = [
-    {
-      icon: <SearchIcon className="w-8 h-8 text-blue-500" />,
-      number: "7",
-      label: t('analyzer.findings'),
-      description: t('analyzer.findingsDesc')
-    },
-    {
-      icon: <AlertTriangleIcon className="w-8 h-8 text-red-500" />,
-      number: "3",
-      label: t('analyzer.issues'),
-      description: t('analyzer.issuesDesc')
-    },
-    {
-      icon: <CheckCircleIcon className="w-8 h-8 text-green-500" />,
-      number: "12",
-      label: t('analyzer.recommendations'),
-      description: t('analyzer.recommendationsDesc')
-    }
-  ];
+const insightCards = useMemo(() => [
+  {
+    icon: <SearchIcon className="w-8 h-8 text-blue-500" />,
+    number: issueCount1.toString(),
+    label: t('analyzer.findings'),
+    description: t('analyzer.findingsDesc')
+  },
+  {
+    icon: <AlertTriangleIcon className="w-8 h-8 text-red-500" />,
+    number: issueCount.toString(),
+    label: t('analyzer.issues'),
+    description: t('analyzer.issuesDesc')
+  },
+  {
+    icon: <CheckCircleIcon className="w-8 h-8 text-green-500" />,
+    number: issueCount2.toString(),
+    label: t('analyzer.recommendations'),
+    description: t('analyzer.recommendationsDesc')
+  }
+], [issueCount, t])
 
   const analysisResults = [
     {
@@ -86,6 +92,7 @@ export const Analyzer = (): JSX.Element => {
   const handleLogout = () => {
     logout();
   };
+  
 
 useEffect(() => {
   const fetchDocuments = async () => {
@@ -148,7 +155,7 @@ const handleAnalyze = async () => {
 
     const token = session.access_token;
 
-    const res = await fetch('https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/smooth-responder', {
+    const res = await fetch('https://xxkenjwjnoebowwlhdtk.supabase.co/functions/v1/proposal-analysis', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -156,13 +163,17 @@ const handleAnalyze = async () => {
       },
       body: JSON.stringify({ document_id: selectedId }),
     });
-
+    console.log(res);
     if (!res.ok) {
       const errorData = await res.json();
       setAnalysis(errorData.error || 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
     } else {
       const result = await res.json();
-      setAnalysis(result.result || 'ไม่พบข้อมูล');
+      setAnalysis(result|| 'ไม่พบข้อมูล');
+      console.log("📦 ผลลัพธ์การวิเคราะห์:", result);
+      setAnalysisResult(result.extracted_fields);
+      setAnalysisResult1(result.unique_differentiators);
+      setAnalysisResult2(result.actionable_recommendations);
     }
   } catch (err) {
     console.error('❌ วิเคราะห์เอกสารล้มเหลว:', err);
@@ -170,6 +181,64 @@ const handleAnalyze = async () => {
   } finally {
     setLoading(false);
   }
+};
+
+const AccordionItem = ({ title, content }: { title: string; content: string[] | string }) => {
+  const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState('0px');
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setHeight(open ? `${contentRef.current.scrollHeight}px` : '0px');
+    }
+  }, [open]);
+
+  return (
+    <div className="bg-white border-l-4 border-blue-500 rounded-lg shadow-md p-5 mb-5">
+      <button
+  onClick={() => setOpen(!open)}
+  className={`w-full flex justify-between items-center
+    bg-blue-50 text-blue-700 font-semibold text-lg rounded-md
+    px-5 py-3
+    shadow-sm
+    hover:bg-blue-100 hover:text-blue-800
+    focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50
+    transition-colors duration-300`}
+  aria-expanded={open}
+>
+        <span>{title}</span>
+        <svg
+          className={`w-5 h-5 text-blue-500 transform transition-transform duration-300 ${
+            open ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div
+        ref={contentRef}
+        style={{ maxHeight: height }}
+        className="overflow-hidden transition-max-height duration-500 ease-in-out mt-4 text-gray-700"
+      >
+        {Array.isArray(content) ? (
+          <ul className="list-disc pl-6 space-y-2">
+            {content.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="leading-relaxed">{content}</p>
+        )}
+      </div>
+    </div>
+  );
 };
 
 
@@ -342,25 +411,69 @@ const handleAnalyze = async () => {
 
           {/* Analysis Cards */}
          <div>
-      <select onChange={(e) => setSelectedId(e.target.value)}>
-  <option value="">-- เลือกเอกสาร --</option>
-  {documents.map((doc) => (
-    <option key={doc.document_id} value={doc.document_id}>
-      {doc.project_name}  {/* เปลี่ยนตรงนี้จาก file_name เป็น project_name */}
-    </option>
-  ))}
-</select>
+      <div className="max-w-md mx-auto space-y-4">
+  {/* Dropdown Select */}
+  <div>
+    <label htmlFor="document-select" className="block text-sm font-medium text-gray-700 mb-1">
+      เลือกเอกสาร
+    </label>
+    <select
+      id="document-select"
+      value={selectedId}
+      onChange={(e) => setSelectedId(e.target.value)}
+      className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
+    >
+      <option value="">-- เลือกเอกสาร --</option>
+      {documents.map((doc) => (
+        <option key={doc.document_id} value={doc.document_id}>
+          {doc.project_name}
+        </option>
+      ))}
+    </select>
+  </div>
 
-      <button onClick={handleAnalyze} disabled={loading || !selectedId}>
-        {loading ? 'กำลังวิเคราะห์...' : 'วิเคราะห์'}
-      </button>
+  {/* Analyze Button */}
+  <button
+  onClick={handleAnalyze}
+  disabled={loading || !selectedId}
+  className={`
+    w-full
+    px-6 py-3
+    font-semibold text-white
+    rounded-full
+    shadow-lg
+    transition
+    duration-300
+    focus:outline-none
+    focus:ring-4 focus:ring-purple-400
+    ${
+      loading || !selectedId
+        ? 'bg-gray-400 cursor-not-allowed shadow-none'
+        : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-purple-500/50'
+    }
+  `}
+>
+  {loading ? 'กำลังวิเคราะห์...' : 'Analyze Document'}
+</button>
+</div>
 
-      {analysis && (
-        <div className="mt-4 p-4 border rounded bg-gray-100">
-          <h3>ผลการวิเคราะห์:</h3>
-          <p>{analysis}</p>
-        </div>
-      )}
+    <div className="max-w-4xl mx-auto px-4 py-8">
+  {analysis?.extracted_fields && Object.keys(analysis.extracted_fields).length > 0 ? (
+    <div className="space-y-6">
+      {Object.entries(analysis.extracted_fields).map(([key, value]) => (
+        <AccordionItem
+          key={key}
+          title={key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+          content={value}
+        />
+      ))}
+    </div>
+  ) : (
+    <p className="text-center text-gray-400 italic mt-10 select-none">
+      ไม่พบผลลัพธ์
+    </p>
+  )}
+</div>
     </div>
   
         </div>
