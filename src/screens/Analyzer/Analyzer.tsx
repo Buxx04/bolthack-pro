@@ -58,19 +58,22 @@ const insightCards = useMemo(() => [
     icon: <SearchIcon className="w-8 h-8 text-blue-500" />,
     number: issueCount1.toString(),
     label: t('analyzer.findings'),
-    description: t('analyzer.findingsDesc')
+    description: t('analyzer.findingsDesc') ,
+    paragraph: t('Unique Differentiators')
   },
   {
     icon: <AlertTriangleIcon className="w-8 h-8 text-red-500" />,
     number: issueCount.toString(),
     label: t('analyzer.issues'),
-    description: t('analyzer.issuesDesc')
+    description: t('analyzer.issuesDesc'),
+    paragraph: t('Risks and Concerns')
   },
   {
     icon: <CheckCircleIcon className="w-8 h-8 text-green-500" />,
     number: issueCount2.toString(),
     label: t('analyzer.recommendations'),
-    description: t('analyzer.recommendationsDesc')
+    description: t('analyzer.recommendationsDesc'),
+    paragraph: t('Actionable Recommendations')
   }
 ], [issueCount, t])
 
@@ -392,6 +395,9 @@ const AccordionItem = ({ title, content }: { title: string; content: string[] | 
                 </div>
                 <div className="font-['Inter'] font-normal text-sm text-gray-500">
                   {card.description}
+                </div>
+                 <div className="font-['Inter'] font-normal text-sm text-gray-500">
+                  {card.paragraph}
                 </div>
               </CardContent>
             </Card>
