@@ -15,8 +15,16 @@ export const Home = (): JSX.Element => {
         backgroundRepeat: "no-repeat"
       }}
     >
+   <div className="absolute top-5 right-5 z-20">
+  <img
+    src="/black_circle_360x360.png"
+    alt="Black Circle"
+    className="w-[180px] h-[180px] object-contain"
+  />
+</div>
       {/* Background overlay for better readability */}
-      <div className="absolute inset-0 bg-white/20 backdrop-blur-[0.5px]"></div>
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-[0.5px]">
+      </div>
       
       <div className="bg-transparent overflow-hidden w-full max-w-[1440px] relative z-10">
         {/* Content */}
@@ -27,6 +35,7 @@ export const Home = (): JSX.Element => {
             <FeaturesSection />
             <HeroSection />
           </div>
+          
         </div>
       </div>
     </div>
